@@ -1271,107 +1271,35 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
   #                           \ | *
   #                            \|/
   #                             *  
-  # Jeez this seems hard.
-  # Let's just draw a bunch of the 64 sprites by hand, for starters,
-  # using the minimal mask I decided on earlier.
-  # Oh interesting, if all front arms exist, don't need to draw back ones?
-  # Hmm so maybe not too many cases?  Hmm.
-  # 
-  # All fronts:
-  #  1?1?1?:
-  #   .|...|.
-  #   .| . |.
-  #   .| | |.
-  #   .| | |.
-  #   .* | *.
-  #   / \|/ \
-  #   .  *  .
-  #   . /|\ .
-  #   ./ * \.
-  #   . /.\ .
-  #   ./...\.
-  #
-  # 2 out of 3 fronts:
-  #  011?11:
-  #   .\.../.
-  #   . \./ .
-  #   .  *  .
-  #   .     .
-  #   .*   *.
-  #   /     \
-  #   .  *  .
-  #   . /|\ .
-  #   ./ * \.
-  #   . /.\ .
-  #   ./...\.
-  #
-  #  11011?:
-  #   .|...|.
-  #   .| . |.
-  #   .| | |.
-  #   .| | |.
-  #   .* | *.
-  #   / \|  /
-  #   .  * *.
-  #   . /  |.
-  #   ./ * |.
-  #   . /. |.
-  #   ./...|.
-  #  1?1101: mirror image of 11011?
-  #
-  # 1 out of 3 fronts:
-  #  110101:   (and maybe can mask out even more of this? keep in mind we need only what would be messed up by adjacent indiscriminate edges)
-  #                \| | |/
-  #   .|...|.   of  | | | 
-  #   .| . |.       | | | 
-  #   .| | |.       | | | 
-  #   .| | |.      \| | |/
-  #   .* | *.       * | * 
-  #   \  |  /      \  @  /
-  #   .* | *.       * | * 
-  #   .| | |.       | | | 
-  #   .| | |.       | | | 
-  #   .| . |.       | | | 
-  #   .|...|.       | | | 
-  #
-  #  011101:
-  #   .\.../.   of  \   / 
-  #   . \./ .        \ /  
-  #   .  *  .         *   /
-  #   .     .      \     / 
-  #   .\   *.       \   * /
-  #   \ \   \      \ \   \ 
-  #   .* \  .       * @   \
-  #   .|  \ .       |  \  
-  #   .| * \.       | * \ 
-  #   .| .\ .       | |\ \
-  #   .|...\.       | | \ \
-  #                 | | |\
-  #  010111: mirror image of 011101
-
-  #  000000:
-  #   . ... .
-  #   .  .  .
-  #   .  *  .
-  #   . / \ .
-  #   .*   *.
-  #    |\ /| 
-  #   .* * *.
-  #   . \|/ .
-  #   .  *  .
-  #   .  .  .
-  #   . ... .
-
-
 
   # Idea:
   #    1. draw the back 3 arms, all edges
   #    2. draw the middle cube, all edges
   #    3. draw the front 3 arms, all edges
   #    4. erase edges that are between 2 faces facing same direction
+  # Yeah, that's what I did.
 
-
-
+  # Now the picture is good, except it has some '*'s in the middle of edges.
+  # Do a cleanup pass to remove these.
+  for irow in range(n_rows_out):
+    for icol in range(n_cols_out):
+      if True:
+        # Also remove the '@'s
+        if answer[irow][icol] == '@':
+          answer[irow][icol] = '*'
+      if answer[irow][icol] == '*':
+        syndrome = [False] * 6
+        syndrome[0] = irow-1 >= 0 and answer[irow-1][icol] == '|'
+        syndrome[1] = irow-1 >= 0 and icol+1 < n_cols_out and answer[irow-1][icol+1] == '/'
+        syndrome[2] = irow+1 < n_rows_out and icol+1 < n_cols_out and answer[irow+1][icol+1] == '\\'
+        syndrome[3] = irow+1 < n_rows_out and answer[irow+1][icol] == '|'
+        syndrome[4] = irow+1 < n_rows_out and icol-1 >= 0 and answer[irow+1][icol-1] == '/'
+        syndrome[5] = irow-1 >= 0 and icol-1 >= 0 and answer[irow-1][icol-1] == '\\'
+        syndrome_string = syndrome2string(syndrome)
+        if False: pass
+        elif syndrome_string == '010010': answer[irow][icol] = '/'
+        elif syndrome_string == '100100': answer[irow][icol] = '|'
+        elif syndrome_string == '001001': answer[irow][icol] = '\\'
 
 
 
