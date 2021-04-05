@@ -891,9 +891,11 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
     irow1_out = 4 + (irow1_in-minrow)//2 * (6+slack)
     icol1_out = 2 + (icol1_in-mincol)//2 * (6+slack)
     assert irow0_in < irow1_in
+
+    # Note that the exact bounds are empirical.  Too short, and it leaves a gap.  Too long, and it interferes with nodes.
     if icol0_in == icol1_in:
       # vertical
-      for irow_out in range(irow0_out, irow1_out+1):
+      for irow_out in range(irow0_out + 2, irow1_out+1 - 2):
         answer[irow_out][icol0_out-2] = '|'
         answer[irow_out][icol0_out-1] = ' '
         answer[irow_out][icol0_out] = '|'
@@ -901,7 +903,7 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
         answer[irow_out][icol0_out+2] = '|'
     elif icol0_in < icol1_in:
       # Pointing SE
-      for irow_out in range(irow0_out, irow1_out+1):
+      for irow_out in range(irow0_out + 1, irow1_out+1 - 2):
         answer[irow_out+1][icol0_out-1 + (irow_out-irow0_out)] = '\\'
         answer[irow_out+0][icol0_out-1 + (irow_out-irow0_out)] = ' '
         answer[irow_out][icol0_out + (irow_out-irow0_out)] = '\\'
@@ -911,7 +913,7 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
         answer[irow_out-2][icol0_out+2 + (irow_out-irow0_out)] = '\\'
     elif icol0_in > icol1_in:
       # Pointing SW
-      for irow_out in range(irow0_out, irow1_out+1):
+      for irow_out in range(irow0_out + 1, irow1_out+1 - 2):
         answer[irow_out-2][icol0_out-2 - (irow_out-irow0_out)] = '/'
         answer[irow_out-1][icol0_out-2 - (irow_out-irow0_out)] = ' '
         answer[irow_out-1][icol0_out-1 - (irow_out-irow0_out)] = ' '
@@ -925,6 +927,33 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
 
 
   # periods mean transparent
+  node_sprite_NE = [
+    r'../  ',
+    r'./   ',
+    r'*   /',
+    r'|\ / ',
+    r'* * /',
+    r'.\|/.',
+    r'@.*..',
+  ]
+  node_sprite_NW = [
+    r'  \..',
+    r'   \.',
+    r'\   *',
+    r' \ /|',
+    r'\ * *',
+    r'.\|/.',
+    r'..*.@',
+  ]
+  node_sprite_S = [
+    r'..*..',
+    r'./ \.',
+    r'* @ *',
+    r'|\ /|',
+    r'| * |',
+    r'| | |',
+    r'| | |',
+  ]
   node_sprite = [
     r'..*..',
     r'./ \.',
@@ -969,6 +998,9 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
           assert answer is None
           answer = (irow,icol)
     return answer
+  node_sprite_NE_center_row,node_sprite_NE_center_col = findTheAtSign(node_sprite_NE)
+  node_sprite_NW_center_row,node_sprite_NW_center_col = findTheAtSign(node_sprite_NW)
+  node_sprite_S_center_row,node_sprite_S_center_col = findTheAtSign(node_sprite_S)
   node_sprite_center_row,node_sprite_center_col = findTheAtSign(node_sprite)
   node_sprite_N_center_row,node_sprite_N_center_col = findTheAtSign(node_sprite_N)
   node_sprite_SW_center_row,node_sprite_SW_center_col = findTheAtSign(node_sprite_SW)
@@ -983,12 +1015,51 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
     node_center_col_out = 2 + (col_in-mincol)//2 * (6+slack)
     answer[node_center_row_out][node_center_col_out] = '*'
 
-    for ispriterow in range(nspriterows):
-      for ispritecol in range(nspritecols):
-        if node_sprite[ispriterow][ispritecol] != '.':
-          answer[node_center_row_out + (ispriterow - node_sprite_center_row)][node_center_col_out + (ispritecol - node_sprite_center_col)] = node_sprite[ispriterow][ispritecol]
+    if syndromes[inode][1]:  # NE
+      for ispriterow in range(nspriterows):
+        for ispritecol in range(nspritecols):
+          c = node_sprite_NE[ispriterow][ispritecol]
+          if c != '.':
+            # xor
+            if c in '|\\' and answer[node_center_row_out + (ispriterow - node_sprite_NE_center_row)][node_center_col_out + (ispritecol - node_sprite_NE_center_col)] == c:
+              answer[node_center_row_out + (ispriterow - node_sprite_NE_center_row)][node_center_col_out + (ispritecol - node_sprite_NE_center_col)] = ' '
+            else:
+              answer[node_center_row_out + (ispriterow - node_sprite_NE_center_row)][node_center_col_out + (ispritecol - node_sprite_NE_center_col)] = c
 
-    if syndromes[inode][0]:
+    if syndromes[inode][5]:  # NW
+      for ispriterow in range(nspriterows):
+        for ispritecol in range(nspritecols):
+          c = node_sprite_NW[ispriterow][ispritecol]
+          if c != '.':
+            # xor
+            if c in '/|' and answer[node_center_row_out + (ispriterow - node_sprite_NW_center_row)][node_center_col_out + (ispritecol - node_sprite_NW_center_col)] == c:
+              answer[node_center_row_out + (ispriterow - node_sprite_NW_center_row)][node_center_col_out + (ispritecol - node_sprite_NW_center_col)] = ' '
+            else:
+              answer[node_center_row_out + (ispriterow - node_sprite_NW_center_row)][node_center_col_out + (ispritecol - node_sprite_NW_center_col)] = c
+
+    if syndromes[inode][3]:  # S
+      for ispriterow in range(nspriterows):
+        for ispritecol in range(nspritecols):
+          c = node_sprite_S[ispriterow][ispritecol]
+          if c != '.':
+            # xor
+            if c in '/\\' and answer[node_center_row_out + (ispriterow - node_sprite_S_center_row)][node_center_col_out + (ispritecol - node_sprite_S_center_col)] == c:
+              answer[node_center_row_out + (ispriterow - node_sprite_S_center_row)][node_center_col_out + (ispritecol - node_sprite_S_center_col)] = ' '
+            else:
+              answer[node_center_row_out + (ispriterow - node_sprite_S_center_row)][node_center_col_out + (ispritecol - node_sprite_S_center_col)] = c
+
+    if True:
+      for ispriterow in range(nspriterows):
+        for ispritecol in range(nspritecols):
+          c = node_sprite[ispriterow][ispritecol]
+          if c != '.':
+            # xor
+            if c in '|/\\' and answer[node_center_row_out + (ispriterow - node_sprite_center_row)][node_center_col_out + (ispritecol - node_sprite_center_col)] == c:
+              answer[node_center_row_out + (ispriterow - node_sprite_center_row)][node_center_col_out + (ispritecol - node_sprite_center_col)] = ' '
+            else:
+              answer[node_center_row_out + (ispriterow - node_sprite_center_row)][node_center_col_out + (ispritecol - node_sprite_center_col)] = c
+
+    if syndromes[inode][0]:  # N
       for ispriterow in range(nspriterows):
         for ispritecol in range(nspritecols):
           c = node_sprite_N[ispriterow][ispritecol]
@@ -1000,7 +1071,7 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
               answer[node_center_row_out + (ispriterow - node_sprite_N_center_row)][node_center_col_out + (ispritecol - node_sprite_N_center_col)] = c
 
 
-    if syndromes[inode][2]:
+    if syndromes[inode][2]:  # SE
       for ispriterow in range(nspriterows):
         print("  ispriterow=%r" % (ispriterow,))
         for ispritecol in range(nspritecols):
@@ -1012,7 +1083,7 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
             else:
               answer[node_center_row_out + (ispriterow - node_sprite_SE_center_row)][node_center_col_out + (ispritecol - node_sprite_SE_center_col)] = c
 
-    if syndromes[inode][4]:
+    if syndromes[inode][4]:  # SW
       for ispriterow in range(nspriterows):
         for ispritecol in range(nspritecols):
           c = node_sprite_SW[ispriterow][ispritecol]
