@@ -750,8 +750,29 @@ namesAndInputs = [
   ]],
 ]  # namesAndInputs
 
-def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entrances_and_exits, slack):
-  print("        in makePicture")
+# Syndrome of a node is the bit pattern of which incident edges exist, in this order:
+#    501
+#     @
+#    432
+def ComputeSyndromes(nodes, edges):
+  syndromes = [[False]*6 for node in nodes]
+  for inode0,inode1 in edges:
+    irow0,icol0 = nodes[inode0]
+    irow1,icol1 = nodes[inode1]
+    assert irow0 < irow1
+    if icol0 < icol1:
+      syndromes[inode0][2] = True
+      syndromes[inode1][5] = True
+    elif icol0 > icol1:
+      syndromes[inode0][4] = True
+      syndromes[inode1][1] = True
+    else:
+      syndromes[inode1][0] = True
+      syndromes[inode0][3] = True
+  return syndromes
+
+def MakePicture(nodes, node2index, edges, edge_precedences_back_to_front, entrances_and_exits, slack):
+  print("        in MakePicture")
   # If input was this:
   #       *
   #      /|
@@ -801,24 +822,8 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entran
   #                            \|/
   #                             *  
 
-  # Syndrome of a node is the bit pattern of which incident edges exist, in this order:
-  #    501
-  #     @
-  #    432
-  syndromes = [[False]*6 for node in nodes]
-  for inode0,inode1 in edges:
-    irow0,icol0 = nodes[inode0]
-    irow1,icol1 = nodes[inode1]
-    assert irow0 < irow1
-    if icol0 < icol1:
-      syndromes[inode0][2] = True
-      syndromes[inode1][5] = True
-    elif icol0 > icol1:
-      syndromes[inode0][4] = True
-      syndromes[inode1][1] = True
-    else:
-      syndromes[inode1][0] = True
-      syndromes[inode0][3] = True
+  syndromes = ComputeSyndromes(nodes, edges)
+
   def syndrome2string(syndrome): return ''.join('1' if x else '0' for x in syndrome)
   print("          syndromes = %r" % ([syndrome2string(syndrome) for syndrome in syndromes],))
 
@@ -1199,7 +1204,7 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entran
   # But there *is* a voronoi region, right?  It's probably a hexagon??
   # Seems like each node should just be responsible for its voronoi region
   # (pretending slack is 0; draw indiscriminate edges beforehand
-  # so there will be no gaps in the final picture.
+  # so there will be no gaps in the final picture).
   # I'm a bit confused about where to draw the line though.
   # Seems like as long as we aren't so long that we impinge on others,
   # there is some leeway in how much we can/should draw.
@@ -1303,14 +1308,7 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entran
   # Convert from arrays of char to strings
   answer = [''.join(line) for line in answer]
 
-  if True:
-    # Show the picture
-    print("##" + "#"*n_cols_out  + "##")
-    for line in answer:
-      print("# %s #" % line)
-    print("##" + "#"*n_cols_out  + "##")
-
-  print("        out makePicture")
+  print("        out MakePicture")
   return answer
 
 def process(name, input, slack):
@@ -1327,7 +1325,7 @@ def process(name, input, slack):
         nodes.append((irow,icol))
   print("      nodes = %r" % (nodes,))
 
-  node2index = dict(((nodes[i],i) for i in range(len(nodes))))
+  node2index = dict((node,i) for i,node in enumerate(nodes))
   print("      node2index = %r" % (node2index,))
 
   def findEdgeEndpoints(input,node2index,irow,icol):
@@ -1359,7 +1357,7 @@ def process(name, input, slack):
         edges.add((inode0,inode1))
   edges = sorted(edges)  # convert set to list
   print("      edges = %r" % (edges,))
-  edge2index = dict(((edges[i],i) for i in range(len(edges))))
+  edge2index = dict((edge,i) for i,edge in enumerate(edges))
   print("      edge2index = %r" % (edge2index,))
 
   # Figure out edge occlusions, if any.
@@ -1417,17 +1415,224 @@ def process(name, input, slack):
           entrances_and_exits.append((inode,int(c)))
     print("      entrances_and_exits = %r" % (entrances_and_exits,))
 
-  picture = makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entrances_and_exits, slack)
+  picture = MakePicture(nodes, node2index, edges, edge_precedences_back_to_front, entrances_and_exits, slack)
+
+  if True:
+    # Show the picture
+    n_rows_out = len(picture)
+    n_cols_out = len(picture[0])
+    print("##" + "#"*n_cols_out  + "##")
+    for line in picture:
+      print("# %s #" % line)
+    print("##" + "#"*n_cols_out  + "##")
+
+
+  if True:
+    syndromes = ComputeSyndromes(nodes, edges)
+    # See if I can actually make the maze.
+    # Not sure what subnodes should be yet.
+    # Try [inode, xyz offset].
+    subnodes = []
+    idir2dir = ((0,0,1),(-1,0,0),(0,1,0),(0,0,-1),(1,0,0),(0,-1,0))
+    for inode,node in enumerate(nodes):
+      syndrome = syndromes[inode]
+      for idir in range(6):
+        if syndrome[idir]:
+          for jdir in range(6):
+            if idir%3 != jdir%3:
+              diri = idir2dir[idir]
+              dirj = idir2dir[jdir]
+              subnodes.append((inode,(diri[0]+dirj[0],diri[1]+dirj[1],diri[2]+dirj[2])))
+        else:
+          subnodes.append((inode,idir2dir[idir]))
+    print("      len(subnodes) = %r" % (len(subnodes),))
+    print("      subnodes = %r" % (subnodes,))
+    subnodes = sorted(set(subnodes))
+    print("      len(subnodes) = %r" % (len(subnodes),))
+    print("      subnodes = %r" % (subnodes,))
+    subnode2index = dict((subnode,i) for i,subnode in enumerate(subnodes))
+    print("      subnode2index = %r" % (subnode2index,))
+    subedges = []
+    for isubnode,(inode,(x,y,z)) in enumerate(subnodes):
+      for d in ((-1,0,0),(1,0,0),(0,-1,0),(0,1,0),(0,0,-1),(0,0,1)):
+        otherx = x + d[0]
+        othery = y + d[1]
+        otherz = z + d[2]
+        if (inode,(otherx,othery,otherz)) in subnode2index:
+          #print("Hey! found %r and then %r" % ((inode,(x,y,z)),(inode,(otherx,othery,otherz))))
+          jsubnode = subnode2index[(inode,(otherx,othery,otherz))]
+          assert jsubnode != isubnode
+          if jsubnode > isubnode:  # undirected
+            subedges.append((isubnode, jsubnode))
+
+    # Simplistic, for starters: no interaction between crossed edges.
+    for inode0,inode1 in edges:
+      irow0,icol0 = nodes[inode0]
+      irow1,icol1 = nodes[inode1]
+      assert irow0 < irow1
+      if icol0 == icol1:
+        # S
+        subedges.append((subnode2index[(inode0,(1,0,-1))],
+                         subnode2index[(inode1,(1,0,1))]))
+        subedges.append((subnode2index[(inode0,(-1,0,-1))],
+                         subnode2index[(inode1,(-1,0,1))]))
+        subedges.append((subnode2index[(inode0,(0,1,-1))],
+                         subnode2index[(inode1,(0,1,1))]))
+        subedges.append((subnode2index[(inode0,(0,-1,-1))],
+                         subnode2index[(inode1,(0,-1,1))]))
+      elif icol0 < icol1:
+        # SE
+        subedges.append((subnode2index[(inode0,(1,1,0))],
+                         subnode2index[(inode1,(1,-1,0))]))
+        subedges.append((subnode2index[(inode0,(-1,1,0))],
+                         subnode2index[(inode1,(-1,-1,0))]))
+        subedges.append((subnode2index[(inode0,(0,1,1))],
+                         subnode2index[(inode1,(0,-1,1))]))
+        subedges.append((subnode2index[(inode0,(0,1,-1))],
+                         subnode2index[(inode1,(0,-1,-1))]))
+      else:
+        # SW
+        print("      XXX YOU ARE HERE")
+        print("          inode0 = %d" % (inode0,))
+        print("          inode1 = %d" % (inode1,))
+        # for 'input1': should be adding subedge 0,(1,0,1) to 1,(-1,0,1), wtf? yes, it's there! wtf?
+        subedges.append((subnode2index[(inode0,(1,1,0))],
+                         subnode2index[(inode1,(-1,1,0))]))
+        subedges.append((subnode2index[(inode0,(1,-1,0))],
+                         subnode2index[(inode1,(-1,-1,0))]))
+        subedges.append((subnode2index[(inode0,(1,0,1))],
+                         subnode2index[(inode1,(-1,0,1))]))
+        subedges.append((subnode2index[(inode0,(1,0,-1))],
+                         subnode2index[(inode1,(-1,0,-1))]))
+    subedges = sorted(set(subedges))
+    print("      subedges = %r" % (subedges,))
+    #for i,subedge in enumerate(subedges):
+    #  print("          %d: %r -> %r" % (i, subnodes[subedge[0]], subnodes[subedge[1]]))
+
+
+    # Okay, we have subnodes and subedges.
+    # Can we find the path between entrance and exit??
+    def FindShortestPath(edges,node0,node1,node2string):
+      verbose_level = 1
+      if verbose_level >= 1: print("        in FindShortestPath")
+      if verbose_level >= 1: print("          node0 = %r: %r" % (node0,node2string(node0)))
+      if verbose_level >= 1: print("          node1 = %r: %r" % (node1,node2string(node1)))
+      if node1 == node0:
+        if verbose_level >= 1: print("        out FindShortestPath, trivial")
+        return [node0]
+      neighbors = {}
+      for a,b in edges:
+        if a not in neighbors: neighbors[a] = set()
+        if b not in neighbors: neighbors[b] = set()
+        neighbors[a].add(b)
+        neighbors[b].add(a)
+      # Search outward from node0.
+      node2pred = {node0:None}
+      the_list = [node0]
+      the_set = set([node0])
+      i = 0
+      while i < len(the_list):
+        a = the_list[i]
+        if verbose_level >= 2: print("          a = %r: %s" % (a,node2string(a)))
+        for b in neighbors[a]:
+          if b not in the_set:
+            if verbose_level >= 2: print("              b = %r: %s" % (b,node2string(b)))
+            the_set.add(b)
+            the_list.append(b)
+            node2pred[b] = a
+            if b == node1:
+              if verbose_level >= 2: print("              done! because b=%r == node1=%r" % (b,node1))
+              break
+          else:
+            if verbose_level >= 2: print("              (b = %r seen already)" % (b,))
+            pass
+        if the_list[-1] == node1:
+          if verbose_level >= 2: print("          done!")
+          break
+        i += 1
+      if the_list[-1] == node1:
+        # Found a path!
+        assert the_list[-1] == node1
+        answer = [node1]
+        while answer[-1] != node0:
+          answer.append(node2pred[answer[-1]])
+        answer.reverse()
+        if verbose_level >= 1: print("        out FindShortestPath, found it!")
+        return answer
+      else:
+        if verbose_level >= 1: print("        out FindShortestPath, didn't find it")
+        return None
+
+    def FindDirName(node0,node1):
+      row0,col0 = node0
+      row1,col1 = node1
+      if col0 == col1:
+        if row0 < row1:
+          return "S"
+        else:
+          return "N"
+      elif col0 < col1:
+        if row0 < row1:
+          return "SE"
+        else:
+          return "NE"
+      else:
+        assert col0 > col1
+        if row0 < row1:
+          return "SW"
+        else:
+          return "NW"
+
+    if len(entrances_and_exits) != 0:
+      assert len(entrances_and_exits) == 2
+      isubnode0 = subnode2index[(entrances_and_exits[0][0],idir2dir[entrances_and_exits[0][1]])]
+      isubnode1 = subnode2index[(entrances_and_exits[1][0],idir2dir[entrances_and_exits[1][1]])]
+      assert isubnode0 != isubnode1
+
+      path = FindShortestPath(subedges,isubnode0,isubnode1, lambda isubnode:'%r'%(subnodes[isubnode],))
+      print("      path = %r" % (path,))
+      if path is not None:
+        # Convert from index to value
+        path = [subnodes[i] for i in path]
+        print("      path = %r" % (path,))
+        # TODO: Remove path elements that are not direction changes.
+        # How do I detect that??
+        #path = [path[i] for i in range(len(path)) if i==0 or i==len(path)-1 or AreCollinear(... huh? ...)
+        nodepath = []
+        for inode,something in path:
+          if len(nodepath) == 0 or inode != nodepath[-1]:
+            nodepath.append(inode)
+        print("      nodepath = %r" % (nodepath,))
+
+        for forward_then_backward in range(2):
+          print("          ======");
+          print("          start at node %d" % (nodepath[0],))
+          for i in range(len(nodepath)-1):
+            dirname = FindDirName(nodes[nodepath[i]],nodes[nodepath[i+1]])
+            print("          go %s to node %d" % (dirname, nodepath[i+1],))
+          print("          ======");
+          nodepath.reverse()
+          
+      if len(edge_precedences_back_to_front) == 0:  # XXX this is the only case where we get it right, so far
+        # There should be an answer!
+        assert path is not None
+          
+
 
   print("    out process(name="+name+")")
 
-slack = 1  # XXX input
-ninputs = len(namesAndInputs)
-if len(sys.argv) > 1:
-  ninputs = int(sys.argv[1])
+ninputs = None  # default is all, can be overridden on command line
+slack = 0  # can be overridden by --slack=<slack>
+for arg in sys.argv[1:]:
+  if arg.startswith('--slack='):
+    slack = int(arg.split('=')[1])
+  else:
+    ninputs = int(arg)
+
+if ninputs == None: ninputs = len(namesAndInputs)
 for i in range(ninputs):
   name,input = namesAndInputs[i]
-  print("  i = %d" % (i,))
+  print("  i = %d: %r" % (i,name))
   process(name, input, slack)
 
 
