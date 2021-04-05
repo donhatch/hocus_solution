@@ -937,7 +937,7 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entran
 
   # periods mean transparent
   node_sprite_NE = [
-    r'../  ',
+    r'../ .',
     r'./   ',
     r'*   /',
     r'|\ / ',
@@ -946,7 +946,7 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entran
     r'@.*..',
   ]
   node_sprite_NW = [
-    r'  \..',
+    r'. \..',
     r'   \.',
     r'\   *',
     r' \ /|',
@@ -1421,7 +1421,7 @@ def process(name, input, slack):
 
   print("    out process(name="+name+")")
 
-slack = 3  # XXX input
+slack = 0  # XXX input
 ninputs = len(namesAndInputs)
 if len(sys.argv) > 1:
   ninputs = int(sys.argv[1])
