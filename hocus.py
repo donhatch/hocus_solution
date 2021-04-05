@@ -137,86 +137,93 @@ namesAndInputs = [
     '*    ',
   ]],
   ['input1', [
+    '  0',
     '  *',
-    ' / ',
+    '0/ ',
     '*  ',
   ]],
   ['input2', [
-    '  *',
-    '  |',
-    '* *',
-    '|/ ',
-    '*  ',
+    '  *2',
+    '  | ',
+    '*2* ',
+    '|/  ',
+    '*   ',
   ]],
   ['input3', [
     '*   *  ',
     ' \ / \ ',
     '  /   *',
-    ' / \ / ',
-    '*   *  ',
+    '0/ \ / ',
+    '*2  *  ',
   ]],
   ['input4', [
-    '*  ',
-    '|\ ',
-    '| *',
-    '|/ ',
-    '*  ',
+    '0   ',
+    '*   ',
+    '|\  ',
+    '| *1',
+    '|/  ',
+    '*   ',
   ]],
   ['input5', [
-    '  *',
-    ' /|',
-    '* |',
-    '| |',
-    '* |',
-    ' \|',
-    '  *',
+    '   * ',
+    '  /| ',
+    '4* | ',
+    ' | | ',
+    ' | *1',
+    ' | | ',
+    ' * | ',
+    '  \| ',
+    '   * ',
   ]],
   ['input6', [
-    '  *  ',
-    ' /|\ ',
-    '* | *',
-    '| | |',
-    '* | *',
-    ' \|/ ',
-    '  *  ',
+    # Note, actually the vertical lines are too short, but it seems to work anyway
+    '  *   ',
+    ' /|\  ',
+    '*2| *1',
+    '| | | ',
+    '* | * ',
+    ' \|/  ',
+    '  *   ',
   ]],
   ['input7', [
-    '      *',
-    '     /|',
-    '    / |',
-    '   /  |',
-    '  *   *',
-    ' / \ /|',
-    '*   * |',
-    ' \  | |',
-    '  \ | |',
-    '   \| |',
-    '    * |',
-    '     \|',
-    '      *',
+    '       *1',
+    '      /| ',
+    '     / | ',
+    '    /  | ',
+    '   *   * ',
+    '  / \ /| ',
+    ' *   * | ',
+    '4 \  | | ',
+    '   \ | | ',
+    '    \| | ',
+    '     * | ',
+    '      \| ',
+    '       * ',
   ]],
   ['input8', [
-    '*    ',
-    ' \   ',
-    '  *  ',
-    ' / \ ',
-    '*   *',
-    '|\ / ',
-    '| *  ',
-    '|/   ',
-    '*    ',
+    '0     ',
+    '*     ',
+    ' \    ',
+    '  *   ',
+    ' / \  ',
+    '*   *2',
+    '|\ /  ',
+    '| *   ',
+    '|/    ',
+    '*     ',
   ]],
   ['input9', [
-    '*   *',
-    '|\ /|',
-    '| \ |',
-    '|/ \|',
-    '*   *',
+    '     0',
+    ' *   *',
+    ' |\ /|',
+    ' | \ |',
+    ' |/ \|',
+    '4*   *',
   ]],
   ['input10', [
     '    *  ',
     '    |  ',
-    '  * | *',
+    '  *2| *',
     '  | |/|',
     '  | | *',
     '  |/|/ ',
@@ -226,20 +233,20 @@ namesAndInputs = [
     ' /|/|  ',
     '* | |  ',
     '|/| |  ',
-    '* | *  ',
+    '* | *2 ',
     '  |    ',
     '  *    ',
   ]],
   ['input11', [
-    '  *  ',
-    ' / \ ',
-    '*   *',
-    '|\ /|',
-    '| * |',
-    '|/| |',
-    '* | *',
-    ' \|/ ',
-    '  *  ',
+    '  *   ',
+    ' / \0 ',
+    '*   * ',
+    '|\ /| ',
+    '| * | ',
+    '|/| | ',
+    '* | *2',
+    ' \|/  ',
+    '  *   ',
   ]],
   ['input12', [
     '    *',
@@ -691,11 +698,11 @@ namesAndInputs = [
     '    *      ',
   ]], 
   ['input41', [
-    '        *  ',
+    '        0  ',
     '       /|  ',
     '  *   * |  ',
     ' / \  |\|  ',
-    '*   \ | \  ',
+    '*   4 | \  ',
     ' \   \| |\ ',
     '  \   | | *',
     '   \  |\|/ ',
@@ -1073,7 +1080,6 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
 
     if syndromes[inode][2]:  # SE
       for ispriterow in range(nspriterows):
-        print("  ispriterow=%r" % (ispriterow,))
         for ispritecol in range(nspritecols):
           c = node_sprite_SE[ispriterow][ispritecol]
           if c != '.':
@@ -1093,54 +1099,6 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
               answer[node_center_row_out + (ispriterow - node_sprite_SW_center_row)][node_center_col_out + (ispritecol - node_sprite_SW_center_col)] = ' '
             else:
               answer[node_center_row_out + (ispriterow - node_sprite_SW_center_row)][node_center_col_out + (ispritecol - node_sprite_SW_center_col)] = c
-
-  ###############
-  #   *         #
-  #  / \        #
-  # *   *       #
-  # |\ /|\      #
-  # * * * \     #
-  # |\|/|  \    #
-  # | * |   *   #
-  # | |\|\ / \  #
-  # | | | *   * #
-  # | | |/|\ /| #
-  # | | / * * * #
-  # | |/|  \|/  #
-  # | * | / *   #
-  # |/ \|/ /    #
-  # *   * /     #
-  # |\ /|/      #
-  # * * *       #
-  #  \|/        #
-  #   *         #
-  ###############
-
-  ###############
-  #   *         #
-  #  / \        #
-  # *   *       #
-  # |\ /|\      #
-  # * * * \     #
-  # |\|/|  \    #
-  # | * |   *   #
-  # | |\|\ / \  #
-  # | | | *   * #
-  # | | |/|\ /| #
-  # | | | * * * #
-  # | | |  \|/  #
-  # | | | / *   #
-  # | | |/ /    #
-  # * | * /     #
-  # |\|/|/      #
-  # * * *       #
-  #  \|/        #
-  #   *         #
-  ###############
-
-
-
-
 
   # Question: how do we decide what the picture looks like
   # in the immediate vicinity of a node?
@@ -1301,6 +1259,18 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
         elif syndrome_string == '100100': answer[irow][icol] = '|'
         elif syndrome_string == '001001': answer[irow][icol] = '\\'
 
+  # Now try to draw the entrance and exit.
+  #    *
+  # 5 / \ 1
+  #  * 0 *
+  #  |\ /|
+  #  *4*2*
+  #   \|/
+  #    *
+  #    3
+  if True:
+    pass
+
 
 
   # Convert from arrays of char to strings
@@ -1325,8 +1295,8 @@ def process(name, input, slack):
   nodes = []
   for irow in range(len(input)):
     for icol in range(len(input[irow])):
-      assert input[irow][icol] in ' *|/\\'
-      if input[irow][icol] == '*':
+      assert input[irow][icol] in ' *|/\\012345'
+      if input[irow][icol] in '*':
         nodes.append((irow,icol))
   print("      nodes = %r" % (nodes,))
 
@@ -1343,11 +1313,11 @@ def process(name, input, slack):
     else:
       return None,None
     jrow0,jcol0 = irow,icol
-    while input[jrow0][jcol0] != '*':
+    while input[jrow0][jcol0] not in '*':
       jrow0 -= delta[0]
       jcol0 -= delta[1]
     jrow1,jcol1 = irow,icol
-    while input[jrow1][jcol1] != '*':
+    while input[jrow1][jcol1] not in '*':
       jrow1 += delta[0]
       jcol1 += delta[1]
     return node2index[(jrow0,jcol0)], node2index[(jrow1,jcol1)]
@@ -1365,6 +1335,7 @@ def process(name, input, slack):
   edge2index = dict(((edges[i],i) for i in range(len(edges))))
   print("      edge2index = %r" % (edge2index,))
 
+  # Figure out edge occlusions, if any.
   edge_precedences_back_to_front = set()
   for irow in range(len(input)):
     for icol in range(len(input[irow])):
@@ -1387,6 +1358,8 @@ def process(name, input, slack):
   edge_precedences_back_to_front = sorted(edge_precedences_back_to_front)  # convert set to list
   print("      edge_precedences_back_to_front = %r" % (edge_precedences_back_to_front,))
 
+  # Find entrances/exits.
+  # These are number near nodes, roughly in the numbered direction from the node.
 
   picture = makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
 
