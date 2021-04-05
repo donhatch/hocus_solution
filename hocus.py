@@ -1421,7 +1421,7 @@ def process(name, input, slack):
 
   print("    out process(name="+name+")")
 
-slack = 0  # XXX input
+slack = 1  # XXX input
 ninputs = len(namesAndInputs)
 if len(sys.argv) > 1:
   ninputs = int(sys.argv[1])
