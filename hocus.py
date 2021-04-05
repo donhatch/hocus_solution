@@ -238,15 +238,15 @@ namesAndInputs = [
     '  *    ',
   ]],
   ['input11', [
-    '  *   ',
-    ' / \0 ',
-    '*   * ',
-    '|\ /| ',
-    '| * | ',
-    '|/| | ',
-    '* | *2',
-    ' \|/  ',
-    '  *   ',
+    r'  *   ',
+    r' / \0 ',
+    r'*   * ',
+    r'|\ /| ',
+    r'| * | ',
+    r'|/| | ',
+    r'* | *2',
+    r' \|/  ',
+    r'  *   ',
   ]],
   ['input12', [
     '    *',
@@ -699,10 +699,11 @@ namesAndInputs = [
   ]], 
   ['input41', [
     '        0  ',
+    '        *  ',
     '       /|  ',
     '  *   * |  ',
     ' / \  |\|  ',
-    '*   4 | \  ',
+    '*  4* | \  ',
     ' \   \| |\ ',
     '  \   | | *',
     '   \  |\|/ ',
@@ -730,13 +731,14 @@ namesAndInputs = [
     '  *    ',
   ]], 
   ['input43', [
+    '    0',
     '    *',
     '   /|',
     '  * |',
     ' /| |',
     '* | |',
     '|\| |',
-    '| * |',
+    '|4* |',
     '| |\|',
     '| | *',
     '| | |',
@@ -748,7 +750,7 @@ namesAndInputs = [
   ]],
 ]  # namesAndInputs
 
-def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack):
+def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entrances_and_exits, slack):
   print("        in makePicture")
   # If input was this:
   #       *
@@ -1259,6 +1261,13 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
         elif syndrome_string == '100100': answer[irow][icol] = '|'
         elif syndrome_string == '001001': answer[irow][icol] = '\\'
 
+  # Pad, to make room for numbers
+  # TODO: do this earlier
+  answer = [[' '] + line + [' '] for line in answer]
+  answer = [' '*len(answer[0])] + answer + [' '*len(answer[0])]
+  n_rows_out += 2
+  n_cols_out += 2
+
   # Now try to draw the entrance and exit.
   #    *
   # 5 / \ 1
@@ -1269,8 +1278,26 @@ def makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
   #    *
   #    3
   if True:
-    pass
-
+    dir2delta = [
+      (-2,0),
+      (-3,3),
+      (0,1),
+      (3,0),
+      (0,-1),
+      (-3,-3),
+    ]
+    for inode,idir in entrances_and_exits:
+      irow_in,icol_in = nodes[inode]
+      #print("          processing an entrance or exit")
+      #print("              irow_in = %d" % irow_in)
+      #print("              icol_in = %d" % icol_in)
+      irow_out = 1 + 4 + (irow_in-minrow)//2 * (6+slack)  # 1+ because of padding
+      icol_out = 1 + 2 + (icol_in-mincol)//2 * (6+slack)  # 1+ because of padding
+      #print("              irow_out = %d" % irow_out)
+      #print("              icol_out = %d" % icol_out)
+      was = answer[irow_out][icol_out]
+      #answer[irow_out][icol_out] = str(idir)
+      answer[irow_out+dir2delta[idir][0]][icol_out+dir2delta[idir][1]] = str(idir)
 
 
   # Convert from arrays of char to strings
@@ -1358,10 +1385,39 @@ def process(name, input, slack):
   edge_precedences_back_to_front = sorted(edge_precedences_back_to_front)  # convert set to list
   print("      edge_precedences_back_to_front = %r" % (edge_precedences_back_to_front,))
 
-  # Find entrances/exits.
-  # These are number near nodes, roughly in the numbered direction from the node.
+  if True:
+    entrances_and_exits = []
+    # Find entrances/exits.
+    # These are numbers near nodes, roughly in the numbered direction from the node,
+    # although sometimes a bit off in order to work around essential parts of the picture.
+    for irow in range(len(input)):
+      for icol in range(len(input[irow])):
+        c = input[irow][icol]
+        if c in '0123456':
+          print("  found %r at irow=%d icol=%d" % (c, irow, icol))
+          dirss = [
+            ((-1,0),),
+            ((-1,1),(0,1)),
+            ((1,1),(0,1)),
+            ((1,0),),
+            ((1,-1),(0,-1)),
+            ((-1,-1),(0,-1)),
+          ]
+          dirs = dirss[int(c)]
+          inode = None
+          for dir in dirs:
+            rough_irow = irow - dir[0]
+            rough_icol = icol - dir[1]
+            print("      rough_irow = %r" % rough_irow)
+            print("      rough_icol = %r" % rough_icol)
+            if (rough_irow,rough_icol) in node2index:
+              assert inode == None
+              inode = node2index[(rough_irow,rough_icol)]
+          assert inode is not None
+          entrances_and_exits.append((inode,int(c)))
+    print("      entrances_and_exits = %r" % (entrances_and_exits,))
 
-  picture = makePicture(nodes, node2index, edges, edge_precedences_back_to_front, slack)
+  picture = makePicture(nodes, node2index, edges, edge_precedences_back_to_front, entrances_and_exits, slack)
 
   print("    out process(name="+name+")")
 
