@@ -125,6 +125,17 @@ namesAndInputs = [
   ['trivial', [
     '*',
   ]],
+  ['canonical2', [
+    '*    ',
+    '|\   ',
+    '| *  ',
+    '|/|\ ',
+    '* | *',
+    '|\|/ ',
+    '| *  ',
+    '|/   ',
+    '*    ',
+  ]],
   ['input1', [
     '  *',
     ' / ',
@@ -561,22 +572,22 @@ def makePicture(nodes, node2index, edges, slack):
   node_sprite_SE = [
     r'..*..',
     r'./ \.',
-    r'*   \\',
-    r'|\   ',
-    r'* \  ',
-    r'.\ \ ',
-    r'..\ \\',
+    r'*   .',
+    r'|\  .',
+    r'* \ .',
+    r'.\ \.',
+    r'..\ .',
   ]
   node_sprite_SE_center_row = 2
   node_sprite_SE_center_col = 0
   node_sprite_SW = [
     r'..*..',
     r'./ \.',
-    r'/   *',
-    r'   /|',
-    r'  / *',
-    r' / /.',
-    r'/ /..',
+    r'.   *',
+    r'.  /|',
+    r'. / *',
+    r'./ /.',
+    r'. /..',
   ]
   node_sprite_SW_center_row = 2
   node_sprite_SW_center_col = 4
@@ -585,6 +596,7 @@ def makePicture(nodes, node2index, edges, slack):
   nspriterows = len(node_sprite)
   nspritecols = len(node_sprite[0])
   for inode in range(len(nodes)):
+  #for inode in reversed(range(len(nodes))):
     row_in,col_in = nodes[inode]
     node_center_row_out = 4 + (row_in-minrow)//2 * (6+slack)
     node_center_col_out = 2 + (col_in-mincol)//2 * (6+slack)
@@ -598,23 +610,37 @@ def makePicture(nodes, node2index, edges, slack):
     if syndromes[inode][0]:
       for ispriterow in range(nspriterows):
         for ispritecol in range(nspritecols):
-          if node_sprite_N[ispriterow][ispritecol] != '.':
-            answer[node_center_row_out + (ispriterow - node_sprite_N_center_row)][node_center_col_out + (ispritecol - node_sprite_N_center_col)] = node_sprite_N[ispriterow][ispritecol]
+          c = node_sprite_N[ispriterow][ispritecol]
+          if c != '.':
+            # xor
+            if c in '/\\' and answer[node_center_row_out + (ispriterow - node_sprite_N_center_row)][node_center_col_out + (ispritecol - node_sprite_N_center_col)] == c:
+              answer[node_center_row_out + (ispriterow - node_sprite_N_center_row)][node_center_col_out + (ispritecol - node_sprite_N_center_col)] = ' '
+            else:
+              answer[node_center_row_out + (ispriterow - node_sprite_N_center_row)][node_center_col_out + (ispritecol - node_sprite_N_center_col)] = c
 
 
     if syndromes[inode][2]:
       for ispriterow in range(nspriterows):
         print("  ispriterow=%r" % (ispriterow,))
         for ispritecol in range(nspritecols):
-          print("      ispritecol=%r" % (ispritecol,))
-          if node_sprite_SE[ispriterow][ispritecol] != '.':
-            answer[node_center_row_out + (ispriterow - node_sprite_SE_center_row)][node_center_col_out + (ispritecol - node_sprite_SE_center_col)] = node_sprite_SE[ispriterow][ispritecol]
+          c = node_sprite_SE[ispriterow][ispritecol]
+          if c != '.':
+            # xor
+            if c in '/|' and answer[node_center_row_out + (ispriterow - node_sprite_SE_center_row)][node_center_col_out + (ispritecol - node_sprite_SE_center_col)] == c:
+              answer[node_center_row_out + (ispriterow - node_sprite_SE_center_row)][node_center_col_out + (ispritecol - node_sprite_SE_center_col)] = ' '
+            else:
+              answer[node_center_row_out + (ispriterow - node_sprite_SE_center_row)][node_center_col_out + (ispritecol - node_sprite_SE_center_col)] = c
 
     if syndromes[inode][4]:
       for ispriterow in range(nspriterows):
         for ispritecol in range(nspritecols):
-          if node_sprite_SW[ispriterow][ispritecol] != '.':
-            answer[node_center_row_out + (ispriterow - node_sprite_SW_center_row)][node_center_col_out + (ispritecol - node_sprite_SW_center_col)] = node_sprite_SW[ispriterow][ispritecol]
+          c = node_sprite_SW[ispriterow][ispritecol]
+          if c != '.':
+            # xor
+            if c in '\\|' and answer[node_center_row_out + (ispriterow - node_sprite_SW_center_row)][node_center_col_out + (ispritecol - node_sprite_SW_center_col)] == c:
+              answer[node_center_row_out + (ispriterow - node_sprite_SW_center_row)][node_center_col_out + (ispritecol - node_sprite_SW_center_col)] = ' '
+            else:
+              answer[node_center_row_out + (ispriterow - node_sprite_SW_center_row)][node_center_col_out + (ispritecol - node_sprite_SW_center_col)] = c
 
   ###############
   #   *         #
@@ -955,7 +981,7 @@ def process(name, input, slack):
 
   print("    out process(name="+name+")")
 
-slack = 0  # XXX input
+slack = 4  # XXX input
 ninputs = len(namesAndInputs)
 if len(sys.argv) > 1:
   ninputs = int(sys.argv[1])
