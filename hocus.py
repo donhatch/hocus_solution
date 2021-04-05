@@ -515,7 +515,8 @@ def makePicture(nodes, node2index, edges, slack):
 
 
 
-  for inode0,inode1 in edges:
+  #for inode0,inode1 in sorted(edges):
+  for inode0,inode1 in reversed(sorted(edges)):
     irow0_in,icol0_in = nodes[inode0]
     irow1_in,icol1_in = nodes[inode1]
     irow0_out = 4 + (irow0_in-minrow)//2 * (6+slack)
@@ -526,20 +527,30 @@ def makePicture(nodes, node2index, edges, slack):
     if icol0_in == icol1_in:
       # vertical
       for irow_out in range(irow0_out, irow1_out+1):
-        answer[irow_out][icol0_out] = '|'
         answer[irow_out][icol0_out-2] = '|'
+        answer[irow_out][icol0_out-1] = ' '
+        answer[irow_out][icol0_out] = '|'
+        answer[irow_out][icol0_out+1] = ' '
         answer[irow_out][icol0_out+2] = '|'
     elif icol0_in < icol1_in:
       # Pointing SE
       for irow_out in range(irow0_out, irow1_out+1):
-        answer[irow_out][icol0_out + (irow_out-irow0_out)] = '\\'
         answer[irow_out+1][icol0_out-1 + (irow_out-irow0_out)] = '\\'
+        answer[irow_out+0][icol0_out-1 + (irow_out-irow0_out)] = ' '
+        answer[irow_out][icol0_out + (irow_out-irow0_out)] = '\\'
+        answer[irow_out-0][icol0_out+1 + (irow_out-irow0_out)] = ' '
+        answer[irow_out-1][icol0_out+1 + (irow_out-irow0_out)] = ' '
+        answer[irow_out-1][icol0_out+2 + (irow_out-irow0_out)] = ' '
         answer[irow_out-2][icol0_out+2 + (irow_out-irow0_out)] = '\\'
     elif icol0_in > icol1_in:
       # Pointing SW
       for irow_out in range(irow0_out, irow1_out+1):
-        answer[irow_out][icol0_out - (irow_out-irow0_out)] = '/'
         answer[irow_out-2][icol0_out-2 - (irow_out-irow0_out)] = '/'
+        answer[irow_out-1][icol0_out-2 - (irow_out-irow0_out)] = ' '
+        answer[irow_out-1][icol0_out-1 - (irow_out-irow0_out)] = ' '
+        answer[irow_out-0][icol0_out-1 - (irow_out-irow0_out)] = ' '
+        answer[irow_out][icol0_out - (irow_out-irow0_out)] = '/'
+        answer[irow_out+0][icol0_out+1 - (irow_out-irow0_out)] = ' '
         answer[irow_out+1][icol0_out+1 - (irow_out-irow0_out)] = '/'
     else:
       assert False
